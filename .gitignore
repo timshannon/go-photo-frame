@@ -4,9 +4,19 @@
 *.dll
 *.so
 *.dylib
+go-photo-frame
 
 # Test binary, build with `go test -c`
 *.test
 
 # Output of the go coverage tool, specifically when used with LiteIDE
 *.out
+
+# config files
+config.*
+
+# vim swap files
+*.swp
+
+# datafiles
+*.db
