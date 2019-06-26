@@ -4,11 +4,13 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 	"net/http"
+	"time"
 )
 
-func startServer(port string) error {
+func startServer(port string, q *queue) error {
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != "GET" || r.URL.Path != "/" {
 			http.NotFound(w, r)
@@ -17,20 +19,19 @@ func startServer(port string) error {
 		w.Write([]byte(html))
 	})
 
-	http.HandleFunc("/image/current", func(w http.ResponseWriter, r *http.Request) {
+	http.HandleFunc("/image", func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != "GET" {
 			http.NotFound(w, r)
 			return
 		}
-		// TODO: current image
-	})
+		img, err := q.next()
+		if err != nil {
+			fmt.Printf("%s\tError getting image: %s\n", time.Now(), err)
+		}
 
-	http.HandleFunc("/image/next", func(w http.ResponseWriter, r *http.Request) {
-		if r.Method != "GET" {
-			http.NotFound(w, r)
-			return
-		}
-		// TODO: next image
+		w.Header().Set("Content-Type", img.ContentType)
+
+		http.ServeContent(w, r, img.Key, time.Time{}, bytes.NewReader(img.Data))
 	})
 
 	fmt.Printf("Go Photo Frame is running on port %s\n", port)

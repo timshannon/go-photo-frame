@@ -58,7 +58,8 @@ func main() {
 		os.Exit(1)
 	}
 
-	err = startServer(viper.GetString("port")) // TODO passing imageDuration?
+	err = startServer(viper.GetString("port"), newQueue(viper.GetInt("maxImageCount"),
+		viper.GetString("imageOrder")))
 	if err != nil {
 		fmt.Printf("Error starting server: %s \n", err)
 		os.Exit(1)

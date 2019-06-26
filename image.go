@@ -6,14 +6,15 @@ package main
 import (
 	"time"
 
-	"github.com/timshannon/bolthold"
+	"github.com/spf13/viper"
+	bh "github.com/timshannon/bolthold"
+	"go.etcd.io/bbolt"
 )
 
-var store *bolthold.Store
+var store *bh.Store
 
 type image struct {
-	Key         uint64 `boltholdKey:"Key"`
-	UniqueID    string
+	Key         string `boltholdKey:"Key"`
 	Date        time.Time
 	Provider    string `boltholdIndex:"Provider"`
 	Data        []byte
@@ -21,7 +22,7 @@ type image struct {
 }
 
 func openStore(file string) error {
-	s, err := bolthold.Open(file, 0666, nil)
+	s, err := bh.Open(file, 0666, nil)
 	if err != nil {
 		return err
 	}
@@ -33,12 +34,44 @@ func closeStore() error {
 	return store.Close()
 }
 
+func getImage(key string) (*image, error) {
+	i := &image{}
+	err := store.Get(key, i)
+	if err != nil {
+		return nil, err
+	}
+	return i, nil
+}
+
+func getImages(query *bh.Query) ([]*image, error) {
+	var images []*image
+	err := store.Find(&images, query)
+	if err != nil {
+		return nil, err
+	}
+	return images, nil
+}
+
 func addImages(images []*image) error {
-	for i := range images {
-		err := store.Insert(bolthold.NextSequence(), images[i])
+	return store.Bolt().Update(func(tx *bbolt.Tx) error {
+		for i := range images {
+			err := store.TxInsert(tx, images[i].Key, images[i])
+			if err != nil {
+				return err
+			}
+		}
+
+		all := &bh.Query{}
+
+		count, err := store.TxCount(tx, &image{}, all)
 		if err != nil {
 			return err
 		}
-	}
-	return nil
+		if count <= viper.GetInt("maxImageCount") {
+			return nil
+		}
+
+		return store.TxDeleteMatching(tx, &image{},
+			all.SortBy("Date").Limit(count-viper.GetInt("maxImageCount")))
+	})
 }
