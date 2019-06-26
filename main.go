@@ -52,12 +52,7 @@ func main() {
 
 	}
 
-	err = initializeProviders() // TODO: passin provider config
-	if err != nil {
-		fmt.Printf("Error initializing image providers: %s \n", err)
-		os.Exit(1)
-	}
-
+	initializeProviders(viper.GetString("imagePollDuration"), viper.GetStringMap("providers"))
 	err = startServer(viper.GetString("port"), newQueue(viper.GetInt("maxImageCount"),
 		viper.GetString("imageOrder")))
 	if err != nil {

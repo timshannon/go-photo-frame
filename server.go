@@ -26,7 +26,9 @@ func startServer(port string, q *queue) error {
 		}
 		img, err := q.next()
 		if err != nil {
-			fmt.Printf("%s\tError getting image: %s\n", time.Now(), err)
+			fmt.Printf("%s\tError getting image: %s\n", time.Now().Format(time.RFC3339), err)
+			http.NotFound(w, r)
+			return
 		}
 
 		w.Header().Set("Content-Type", img.ContentType)

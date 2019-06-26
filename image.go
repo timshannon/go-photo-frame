@@ -34,6 +34,18 @@ func closeStore() error {
 	return store.Close()
 }
 
+func getLastImageDate(provider string) (time.Time, error) {
+	img := &image{}
+	err := store.FindOne(img, bh.Where("Provider").Eq(provider).SortBy("Date").Reverse().Index("Provider"))
+	if err == bh.ErrNotFound {
+		return time.Time{}, nil
+	}
+	if err != nil {
+		return time.Time{}, err
+	}
+	return img.Date, nil
+}
+
 func getImage(key string) (*image, error) {
 	i := &image{}
 	err := store.Get(key, i)

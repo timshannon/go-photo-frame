@@ -4,6 +4,7 @@
 package main
 
 import (
+	"fmt"
 	"math/rand"
 	"sync"
 
@@ -53,6 +54,10 @@ func (q *queue) repopulate() error {
 		return err
 	}
 
+	if len(images) == 0 {
+		return fmt.Errorf("no images found")
+	}
+
 	q.queue = q.queue[:0]
 	for i := range images {
 		q.queue = append(q.queue, images[i].Key)
@@ -65,14 +70,19 @@ func (q *queue) next() (*image, error) {
 	q.Lock()
 	defer q.Unlock()
 
-	i := q.order.next(len(q.queue))
-	if len(q.queue) == 0 || i == -1 {
+	if len(q.queue) == 0 {
 		err := q.repopulate()
 		if err != nil {
 			return nil, err
 		}
+	}
 
-		i = q.order.next(len(q.queue))
+	i := q.order.next(len(q.queue))
+	if i == -1 {
+		err := q.repopulate()
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	img, err := getImage(q.queue[i])
