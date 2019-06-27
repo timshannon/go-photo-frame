@@ -9,9 +9,11 @@ import (
 )
 
 const maxImagesPerPoll = 50
+const userAgent = "Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2228.0 Safari/537.36"
 
 type providerConfig map[string]interface{}
 
+// Provider is an interface for an image provider
 type provider interface {
 	name() string
 	initialize(config providerConfig) error
@@ -28,8 +30,14 @@ func initializeProviders(pollDuration string, config providerConfig) {
 
 	for k, v := range config {
 		var p provider
-		if k == "instagram" {
+		switch k {
+		case "instagram":
 			p = &instagram{}
+		case "google":
+			p = &google{}
+		default:
+			log.Printf("Invalid provider name: %s", k)
+			continue
 		}
 		err = p.initialize(v.(map[string]interface{}))
 		if err != nil {

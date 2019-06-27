@@ -8,6 +8,7 @@ import (
 	"log"
 	"os"
 	"os/signal"
+	"time"
 
 	"github.com/spf13/viper"
 )
@@ -34,9 +35,9 @@ func main() {
 	viper.AddConfigPath(".")
 
 	viper.SetDefault("port", "8080")
-	viper.SetDefault("imageDuration", "3s")
+	viper.SetDefault("imageCycleDuration", "5s")
 	viper.SetDefault("maxImageCount", 1000)
-	viper.SetDefault("imagePollDuration", "1h")
+	viper.SetDefault("newImagePollDuration", "1h")
 	viper.SetDefault("dataFile", "./images.db")
 	viper.SetDefault("imageOrder", "default")
 
@@ -53,8 +54,12 @@ func main() {
 
 	}
 
-	initializeProviders(viper.GetString("imagePollDuration"), viper.GetStringMap("providers"))
-	err = startServer(viper.GetString("port"), newQueue(viper.GetInt("maxImageCount"),
+	initializeProviders(viper.GetString("newImagePollDuration"), viper.GetStringMap("providers"))
+	imageDuration, err := time.ParseDuration(viper.GetString("imageCycleDuration"))
+	if err != nil {
+		imageDuration = 3 * time.Second
+	}
+	err = startServer(viper.GetString("port"), imageDuration, newQueue(viper.GetInt("maxImageCount"),
 		viper.GetString("imageOrder")))
 	if err != nil {
 		log.Printf("Error starting server: %s \n", err)

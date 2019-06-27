@@ -5,18 +5,39 @@ package main
 
 import (
 	"bytes"
+	"html/template"
 	"log"
 	"net/http"
 	"time"
+
+	bh "github.com/timshannon/bolthold"
 )
 
-func startServer(port string, q *queue) error {
+func startServer(port string, imageDuration time.Duration, q *queue) error {
+	var mainTemplate = template.Must(template.New("").Parse(html))
+	var loadingTemplate = template.Must(template.New("").Parse(loading))
+
+	templateData := struct {
+		Duration int64
+	}{
+		Duration: int64(imageDuration / time.Millisecond),
+	}
+
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != "GET" || r.URL.Path != "/" {
 			http.NotFound(w, r)
 			return
 		}
-		w.Write([]byte(html))
+
+		count, err := store.Count(&image{}, &bh.Query{})
+		if err != nil {
+			log.Printf("Error getting image count: %s", err)
+		}
+		if count == 0 {
+			loadingTemplate.Execute(w, templateData)
+			return
+		}
+		mainTemplate.Execute(w, templateData)
 	})
 
 	http.HandleFunc("/image", func(w http.ResponseWriter, r *http.Request) {
