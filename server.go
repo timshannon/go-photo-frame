@@ -5,7 +5,7 @@ package main
 
 import (
 	"bytes"
-	"fmt"
+	"log"
 	"net/http"
 	"time"
 )
@@ -26,7 +26,7 @@ func startServer(port string, q *queue) error {
 		}
 		img, err := q.next()
 		if err != nil {
-			fmt.Printf("%s\tError getting image: %s\n", time.Now().Format(time.RFC3339), err)
+			log.Printf("Error getting image: %s\n", err)
 			http.NotFound(w, r)
 			return
 		}
@@ -36,6 +36,6 @@ func startServer(port string, q *queue) error {
 		http.ServeContent(w, r, img.Key, time.Time{}, bytes.NewReader(img.Data))
 	})
 
-	fmt.Printf("Go Photo Frame is running on port %s\n", port)
+	log.Printf("Go Photo Frame is running on port %s\n", port)
 	return http.ListenAndServe(":"+port, nil)
 }

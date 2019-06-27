@@ -34,16 +34,16 @@ func closeStore() error {
 	return store.Close()
 }
 
-func getLastImageDate(provider string) (time.Time, error) {
+func getLastImage(provider string) (*image, error) {
 	img := &image{}
 	err := store.FindOne(img, bh.Where("Provider").Eq(provider).SortBy("Date").Reverse().Index("Provider"))
 	if err == bh.ErrNotFound {
-		return time.Time{}, nil
+		return nil, nil
 	}
 	if err != nil {
-		return time.Time{}, err
+		return nil, err
 	}
-	return img.Date, nil
+	return img, nil
 }
 
 func getImage(key string) (*image, error) {

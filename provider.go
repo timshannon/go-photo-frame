@@ -4,19 +4,23 @@
 package main
 
 import (
-	"fmt"
+	"log"
 	"time"
 )
 
+const maxImagesPerPoll = 50
+
+type providerConfig map[string]interface{}
+
 type provider interface {
 	name() string
-	initialize(config map[string]interface{})
-	getImages(since time.Time) ([]*image, error)
+	initialize(config providerConfig) error
+	getImages(lastImage *image) ([]*image, error)
 }
 
 var providers []provider
 
-func initializeProviders(pollDuration string, config map[string]interface{}) {
+func initializeProviders(pollDuration string, config providerConfig) {
 	poll, err := time.ParseDuration(pollDuration)
 	if err != nil {
 		poll = 1 * time.Hour
@@ -27,7 +31,10 @@ func initializeProviders(pollDuration string, config map[string]interface{}) {
 		if k == "instagram" {
 			p = &instagram{}
 		}
-		p.initialize(v.(map[string]interface{}))
+		err = p.initialize(v.(map[string]interface{}))
+		if err != nil {
+			log.Printf("Error initializing provider %s", p.name())
+		}
 
 		providers = append(providers, p)
 	}
@@ -37,26 +44,48 @@ func initializeProviders(pollDuration string, config map[string]interface{}) {
 
 func pollProviders(poll time.Duration) {
 	for _, p := range providers {
-		dt, err := getLastImageDate(p.name())
+		last, err := getLastImage(p.name())
 		if err != nil {
-			fmt.Printf("%s\tError getting last image from %s: %s\n", time.Now().Format(time.RFC3339),
-				p.name(), err)
+			log.Printf("Error getting last image from %s: %s\n", p.name(), err)
 			continue
 		}
-		images, err := p.getImages(dt)
+		images, err := p.getImages(last)
 		if err != nil {
-			fmt.Printf("%s\tError getting images from %s: %s\n", time.Now().Format(time.RFC3339),
-				p.name(), err)
+			log.Printf("Error getting images from %s: %s\n", p.name(), err)
 			continue
 		}
 
 		err = addImages(images)
 		if err != nil {
-			fmt.Printf("%s\tError inserting images from %s: %s\n", time.Now().Format(time.RFC3339),
-				p.name(), err)
+			log.Printf("Error inserting images from %s: %s\n", p.name(), err)
 		}
 	}
 
 	time.Sleep(poll)
 	pollProviders(poll)
+}
+
+func (c providerConfig) getString(field string) (string, bool) {
+	if val, ok := c[field]; ok {
+		val, ok := val.(string)
+		return val, ok
+	}
+	return "", false
+}
+
+func (c providerConfig) getStringSlice(field string) ([]string, bool) {
+	if val, ok := c[field]; ok {
+		val, ok := val.([]interface{})
+		s := make([]string, len(val))
+		for i := range s {
+			str, ok := val[i].(string)
+			if !ok {
+				return nil, false
+			}
+			s[i] = str
+		}
+
+		return s, ok
+	}
+	return nil, false
 }

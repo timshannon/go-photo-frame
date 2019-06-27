@@ -5,6 +5,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"os/signal"
 
@@ -41,13 +42,13 @@ func main() {
 
 	err := viper.ReadInConfig()
 	if err != nil {
-		fmt.Printf("Fatal error loading config file: %s \n", err)
+		log.Printf("Fatal error loading config file: %s \n", err)
 		os.Exit(1)
 	}
 
 	err = openStore(viper.GetString("dataFile"))
 	if err != nil {
-		fmt.Printf("Error opening data file: %s \n", err)
+		log.Printf("Error opening data file: %s \n", err)
 		os.Exit(1)
 
 	}
@@ -56,7 +57,7 @@ func main() {
 	err = startServer(viper.GetString("port"), newQueue(viper.GetInt("maxImageCount"),
 		viper.GetString("imageOrder")))
 	if err != nil {
-		fmt.Printf("Error starting server: %s \n", err)
+		log.Printf("Error starting server: %s \n", err)
 		os.Exit(1)
 	}
 }
