@@ -9,3 +9,5 @@ providers:
   google-photos:
     urls:
       - "https://url-to-shared-google-photos-album"
+  email:
+    

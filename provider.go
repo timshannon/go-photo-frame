@@ -35,6 +35,9 @@ func initializeProviders(pollDuration string, config providerConfig) {
 			p = &instagram{}
 		case "google-photos":
 			p = &google{}
+		case "email":
+			p = &email{}
+
 		default:
 			log.Printf("Invalid provider name: %s", k)
 			continue
@@ -84,6 +87,9 @@ func (c providerConfig) getString(field string) (string, bool) {
 func (c providerConfig) getStringSlice(field string) ([]string, bool) {
 	if val, ok := c[field]; ok {
 		val, ok := val.([]interface{})
+		if !ok {
+			return nil, false
+		}
 		s := make([]string, len(val))
 		for i := range s {
 			str, ok := val[i].(string)
