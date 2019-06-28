@@ -1,5 +1,11 @@
 port: 8070 # web server listening port
-imageDuration: 3s # duration images are showed before cycling to the next image
+imageCycleDuration: 5s # duration images are showed before cycling to the next image
 maxImageCount: 1000 # maximum number of images stored locally, oldest images will be replaced with new images
 imagePollDuration: 1h # how often providers are checked for new images
 providers:
+  instagram:
+    accounts:
+      - "instagram-account-name"
+  google-photos:
+    urls:
+      - "https://url-to-shared-google-photos-album"

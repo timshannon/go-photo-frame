@@ -33,7 +33,7 @@ func initializeProviders(pollDuration string, config providerConfig) {
 		switch k {
 		case "instagram":
 			p = &instagram{}
-		case "google":
+		case "google-photos":
 			p = &google{}
 		default:
 			log.Printf("Invalid provider name: %s", k)
@@ -41,7 +41,7 @@ func initializeProviders(pollDuration string, config providerConfig) {
 		}
 		err = p.initialize(v.(map[string]interface{}))
 		if err != nil {
-			log.Printf("Error initializing provider %s", p.name())
+			log.Printf("Error initializing provider %s: %s", p.name(), err)
 		}
 
 		providers = append(providers, p)
