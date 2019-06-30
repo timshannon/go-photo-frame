@@ -5,6 +5,7 @@ package main
 
 import (
 	"fmt"
+	"math"
 	"math/rand"
 	"sync"
 
@@ -77,12 +78,20 @@ func (q *queue) next() (*image, error) {
 		}
 	}
 
+	if len(q.queue) == 0 {
+		return nil, nil
+	}
+
 	i := q.order.next(len(q.queue))
 	if i == -1 {
 		err := q.repopulate()
 		if err != nil {
 			return nil, err
 		}
+	}
+
+	if len(q.queue) == 0 {
+		return nil, nil
 	}
 
 	img, err := getImage(q.queue[i])
@@ -118,7 +127,7 @@ func (d *defaultCollator) next(total int) int {
 	if rand.Intn(weight) == 0 {
 		return rand.Intn(total)
 	}
-	return rand.Intn(total / 3)
+	return rand.Intn(int(math.Ceil(float64(total) / 3)))
 }
 
 type randomCollator struct{}

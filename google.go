@@ -137,7 +137,7 @@ func (g *google) getImage(imageNode *cdp.Node) (*image, error) {
 		Date:        imageDate,
 		Data:        body,
 		Provider:    g.name(),
-		ContentType: "image/jpeg",
+		ContentType: resp.Header.Get("Content-Type"),
 	}
 
 	return img, nil

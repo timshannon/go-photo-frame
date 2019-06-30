@@ -46,7 +46,7 @@ func startServer(port string, imageDuration time.Duration, q *queue) error {
 			return
 		}
 		img, err := q.next()
-		if err != nil {
+		if err != nil || img == nil {
 			log.Printf("Error getting image: %s\n", err)
 			http.NotFound(w, r)
 			return
