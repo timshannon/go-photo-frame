@@ -10,4 +10,8 @@ providers:
     urls:
       - "https://url-to-shared-google-photos-album"
   email:
-    
+    server: "imap.gmail.com"
+    port: "993"
+    username: "username@gmail.com"
+    password: "password or app password"
+    mailbox: "INBOX"

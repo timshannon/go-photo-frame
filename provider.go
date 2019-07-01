@@ -37,14 +37,15 @@ func initializeProviders(pollDuration string, config providerConfig) {
 			p = &google{}
 		case "email":
 			p = &email{}
-
 		default:
 			log.Printf("Invalid provider name: %s", k)
 			continue
 		}
-		err = p.initialize(v.(map[string]interface{}))
-		if err != nil {
-			log.Printf("Error initializing provider %s: %s", p.name(), err)
+		if v != nil {
+			err = p.initialize(v.(map[string]interface{}))
+			if err != nil {
+				log.Printf("Error initializing provider %s: %s", p.name(), err)
+			}
 		}
 
 		providers = append(providers, p)

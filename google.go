@@ -45,7 +45,7 @@ func (g *google) getImages(lastImage *image) ([]*image, error) {
 		defer cancel()
 
 		// create a timeout
-		ctx, cancel = context.WithTimeout(ctx, 15*time.Second)
+		ctx, cancel = context.WithTimeout(ctx, 1*time.Minute)
 		defer cancel()
 
 		var imgNodes []*cdp.Node
@@ -54,6 +54,7 @@ func (g *google) getImages(lastImage *image) ([]*image, error) {
 			chromedp.WaitVisible(`a[aria-label*="Photo"]`),
 			chromedp.Nodes(`a[aria-label*="Photo"] > div[style*="background-image"]`, &imgNodes),
 		)
+
 		if err != nil {
 			return nil, err
 		}

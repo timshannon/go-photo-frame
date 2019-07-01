@@ -76,6 +76,19 @@ func (e *email) getImages(lastImage *image) ([]*image, error) {
 		}
 
 		images = append(images, imgs...)
+
+		if lastImage != nil {
+			lastFound := false
+			for k := range imgs {
+				if imgs[k].Key == lastImage.Key {
+					lastFound = true
+					break
+				}
+			}
+			if lastFound {
+				break
+			}
+		}
 	}
 
 	return images, nil
