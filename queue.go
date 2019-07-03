@@ -88,6 +88,8 @@ func (q *queue) next() (*image, error) {
 		if err != nil {
 			return nil, err
 		}
+
+		i = q.order.next(len(q.queue))
 	}
 
 	if len(q.queue) == 0 {
@@ -123,7 +125,7 @@ func (d *defaultCollator) next(total int) int {
 		// every 50 images repopulate image queue
 		return -1
 	}
-	weight := 3 // 1 in 3 chance of return an image in the newest 3rd of the image queue
+	weight := 3 // 2 out of 3 chance of return an image in the newest 3rd of the image queue
 	if rand.Intn(weight) == 0 {
 		return rand.Intn(total)
 	}

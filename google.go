@@ -6,6 +6,7 @@ package main
 import (
 	"context"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"strings"
 	"time"
@@ -38,26 +39,28 @@ func (g *google) getImages(lastImage *image) ([]*image, error) {
 	for _, album := range g.urls {
 		imgCount := 0
 
-		baseCtx := context.Background()
-		// baseCtx, cancel := chromedp.NewRemoteAllocator(context.Background(), "ws://0.0.0.0:9222/devtools/browser/1c166044-6769-4285-84a3-6827acc42af8")
-		ctx, cancel := chromedp.NewContext(baseCtx)
-
+		// create chrome instance
+		ctx, cancel := chromedp.NewContext(
+			context.Background(),
+			chromedp.WithLogf(log.Printf),
+		)
 		defer cancel()
 
 		// create a timeout
-		ctx, cancel = context.WithTimeout(ctx, 1*time.Minute)
+		ctx, cancel = context.WithTimeout(ctx, 15*time.Second)
 		defer cancel()
 
 		var imgNodes []*cdp.Node
 		err := chromedp.Run(ctx,
 			chromedp.Navigate(album),
-			chromedp.WaitVisible(`a[aria-label*="Photo"]`),
+			chromedp.WaitReady(`a[aria-label*="Photo"]`),
 			chromedp.Nodes(`a[aria-label*="Photo"] > div[style*="background-image"]`, &imgNodes),
 		)
 
 		if err != nil {
 			return nil, err
 		}
+
 		for _, n := range imgNodes {
 			img, err := g.getImage(n)
 			if err != nil {
